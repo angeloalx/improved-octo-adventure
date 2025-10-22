@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kalender Minum Tablet Tambah Darah - Puskesmas Jenangan</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ff6fa7">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fff0f6; --panel:#ffffff; --text:#3b2f3f; --muted:#7a6b80; --line:#f3d6e8;
+    --accent:#ff6fa7; --accent-2:#ff9ac3; --today:#ffb3d1; --ttd:#ffe0ec; --done:#d7f5e4;
+    --shadow:0 10px 30px rgba(0,0,0,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:'Quicksand',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  header{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,#ffc1d6,#ffd6e5);border-bottom:3px solid #ff9ac3;color:#5a3f52;padding:12px 14px}
+  .titleWrap{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:12px}
+  .logo{width:42px;height:42px;border-radius:12px;background:#fff;display:grid;place-items:center;box-shadow:var(--shadow);border:1px solid var(--line)}
+  .logo img{width:28px;height:28px}
+  h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.3px}
+  .container{max-width:1100px;margin:20px auto;padding:0 14px;display:grid;grid-template-columns:320px 1fr;gap:16px}
+  @media (max-width:960px){.container{grid-template-columns:1fr}}
+  .side{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px}
+  .side h2{margin:6px 0 8px;font-size:16px}
+  .side .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  label small{color:#8b7a90}
+  select,input{width:100%;padding:10px;border-radius:12px;border:1px solid var(--line);background:#fff;font-family:inherit}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-weight:800;cursor:pointer;box-shadow:var(--shadow)}
+  .btn:active{transform:translateY(1px)}
+  .btn-ghost{background:#fff;border:1px solid var(--line);color:#5a3f52}
+  .main{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .group{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .dow{font-size:12px;color:#8b7a90;text-align:center;font-weight:700}
+  .day{position:relative;min-height:108px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:8px;overflow:hidden;transition:box-shadow .12s ease}
+  .day:hover{box-shadow:0 8px 20px rgba(0,0,0,.05)}
+  .date{font-weight:800}
+  .ttd{background:var(--ttd);border-color:#ffc9dd}
+  .burst{outline:2px dashed #f59e0b; outline-offset:-3px}
+  .done{background:var(--done);border-color:#bdeccb}
+  .today{box-shadow:0 0 0 2px var(--today) inset}
+  .legend{display:flex;gap:10px;align-items:center;margin:8px 0 12px;flex-wrap:wrap}
+  .dot{width:10px;height:10px;border-radius:999px}
+  .dot-ttd{background:#f59e0b}
+  .dot-done{background:#10b981}
+  .dot-burst{background:#ef4444}
+  .edu{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px}
+  .edu h3{margin:0 0 8px}
+  .edu .para{margin:0 0 8px;color:#4a3b4f}
+  .quiz{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px}
+  .q{font-weight:700;margin:8px 0 4px}
+  .answer{display:block;filter: var(--guideImgFilter);transition: filter .15s ease;margin:4px 0}
+  .score{margin-top:8px;font-weight:800;color:#065f46}
+  footer{max-width:1100px;margin:14px auto 24px;padding:0 14px;text-align:center;color:#8a7c90;font-size:12px}
+  .doodle{position:absolute;opacity:.22;filter:saturate(1.1);pointer-events:none;transition:transform .2s ease}
+  .doodle:hover{transform:scale(1.05)}
+  .alarm{position:absolute;right:6px;top:6px;background:#fff;border:1px solid #ffbad3;border-radius:999px;width:22px;height:22px;display:grid;place-items:center;box-shadow:var(--shadow)}
+  /* Toast */
+  .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(20px);background:#ffffff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:12px;padding:10px 14px;opacity:0;pointer-events:none;transition:all .25s ease;color:#3b2f3f;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast .ok{color:#065f46;font-weight:800;margin-right:6px}
+  .toast .rm{color:#9a124a;font-weight:800;margin-right:6px}
+  @media (max-width:640px){ .toast{width:calc(100% - 24px);} }
+  .banner{margin-top:10px;padding:8px 12px;border:1px solid #ffd1e7;background:#fff7fb;border-radius:12px;color:#6b4a5a}
+  .install{display:flex;gap:8px;margin-top:10px;align-items:center}
+  .ios-hint{font-size:13px;color:#6b4a5a;margin-top:6px}
+</style>
+<meta name="theme-color" content="#ff66a3">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+</head>
+<body>
+<div class="banner" style="margin:10px; padding:8px 12px; border:1px solid #ffd1e7; background:#fff7fb; border-radius:12px; color:#6b4a5a;">🔒 Data tanda "sudah minum" & pengingat disimpan <b>di perangkat ini</b>. Jika dibuka di perangkat lain atau mode <b>private/incognito</b>, data <b>tidak akan tersimpan</b>.</div>
+<header>
+  <div class="titleWrap">
+    <div class="logo" aria-hidden="true"><img src="icon-192.png" alt=""></div>
+    <h1>Kalender Minum Tablet Tambah Darah - Puskesmas Jenangan</h1>
+  </div>
+</header>
+
+<div class="container">
+  <aside class="side">
+    <h2>Pengaturan</h2>
+    <div class="row">
+      <div>
+        <label for="selMonth">Bulan</label>
+        <select id="selMonth"></select>
+      </div>
+      <div>
+        <label for="selYear">Tahun</label>
+        <select id="selYear"></select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label for="selTTD">Hari minum TTD</label>
+        <select id="selTTD">
+          <option value="1">Senin</option>
+          <option value="2">Selasa</option>
+          <option value="3">Rabu</option>
+          <option value="4">Kamis</option>
+          <option value="5" selected>Jumat</option>
+          <option value="6">Sabtu</option>
+          <option value="0">Minggu</option>
+        </select>
+      </div>
+      <div>
+        <label for="remTime">Jam pengingat <small>(24 jam)</small></label>
+        <input id="remTime" type="time" value="08:00">
+      </div>
+    </div>
+
+    <div class="row-3" style="margin-top:10px">
+    <div class="row" style="margin-top:8px">
+      
+    </div>
+
+      <button class="btn btn-ghost" id="btnKapanTTD">❓ Kapan minum TTD?</button>
+      <button class="btn" id="btnToday">📍 Hari ini</button>
+      <button class="btn btn-ghost" id="btnEnablePushWeekly">🔔 Aktifkan Pengingat TTD Mingguan</button>
+      <button class="btn btn-ghost" id="btnGCal">📆 Tambah ke Google Calendar (TTD mingguan)</button>
+    </div>
+
+    <div class="banner">
+      💡 <b>Pengingat harian (otomatis)</b> untuk beberapa hari ke depan. Cocok saat haid: minum 1x/hari.
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div>
+        <label>Durasi pengingat harian</label>
+        <select id="burstDays">
+          <option value="4">4 hari</option>
+          <option value="5" selected>5 hari</option>
+          <option value="6">6 hari</option>
+          <option value="7">7 hari</option>
+        </select>
+<label style="margin-left:8px;">Jam haid: <input type="time" id="remTimeBurst" value="07:00"></label>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="btn" id="btnAddBurst">➕ Tambah pengingat harian (mulai hari ini)</button>
+		<button class="btn btn-ghost" id="btnEnablePushBurst">🔔 Aktifkan Pengingat TTD Harian (periode)</button>
+      </div>
+    </div>
+    <div class="row-3" style="margin-top:8px">
+      <button class="btn btn-ghost" id="btnGCalBurst">📆 Google Calendar (harian beberapa hari)</button>
+      <button class="btn btn-ghost" id="btnClearBursts">🧹 Hapus pengingat harian</button>
+      <span style="align-self:center;color:#7a6b80" id="burstCountLabel"></span>
+    </div>
+
+    <div class="banner">
+      🔒 Data tanda "sudah minum" & pengingat disimpan <b>di HP kamu</b>. Jika buka di HP lain, datanya tidak ikut pindah.
+    </div>
+
+    <div class="install">
+      <button class="btn" id="btnInstall" style="display:none">📲 Pasang Aplikasi (Add to Home Screen)</button>
+      <div class="ios-hint" id="iosHint" style="display:none">
+        iOS: buka di Safari → <b>Share</b> → <b>Add to Home Screen</b>
+      </div>
+	  
+	  <!-- Tombol dedikasi baru (selalu ada di mobile) -->
+	  <button class="btn btn-ghost" id="btnA2HS" style="display:none">
+	  ➕ Tambahkan ke Layar Utama
+	  </button>
+    </div>
+
+    <div class="legend">
+      <div class="dot dot-ttd"></div><span>Jadwal TTD (mingguan)</span>
+      <div class="dot dot-burst"></div><span>Pengingat harian (otomatis)</span>
+      <div class="dot dot-done"></div><span>Sudah minum</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="toolbar">
+      <div class="group"><strong id="labelMonth">Bulan</strong></div>
+      <div class="group">
+        <button class="btn" id="prevBtn">← Bulan sebelumnya</button>
+        <button class="btn" id="nextBtn">Bulan berikutnya →</button>
+      </div>
+    </div>
+
+    <div class="calendar" id="dow"></div>
+    <div class="calendar" id="cal"></div>
+
+    <section class="edu">
+      <h3 id="eduTitle">Tema Edukasi Bulan Ini</h3>
+      <p class="para" id="eduP1"></p>
+      <p class="para" id="eduP2"></p>
+      <p class="para" id="eduP3"></p>
+      <p class="para" id="eduP4"></p>
+    </section>
+
+    <section class="quiz">
+      <h3>🧩 Kuis Bulan Ini</h3>
+      <div id="quiz"></div>
+      <button class="btn" id="checkQuiz">Cek jawaban</button>
+      <div class="score" id="quizScore"></div>
+    </section>
+
+    <div class="banner" style="margin-top:14px">
+      🔔 Jika notifikasi tidak muncul, <b>tambahkan ke Google Calendar</b> atau <b>pasang aplikasi ini</b> ke layar utama.
+    </div>
+  </main>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<footer>Puskesmas Jenangan • Kalender TTD</footer>
+
+<script>
+// SW register
+const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Jakarta';
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('service-worker.js'); }
+
+function fmtLocal(dt){
+  const pad=n=>String(n).padStart(2,'0');
+  return dt.getFullYear()+pad(dt.getMonth()+1)+pad(dt.getDate())+'T'+pad(dt.getHours())+pad(dt.getMinutes())+pad(dt.getSeconds());
+}
+
+// A2HS (Android)
+let deferredPrompt;
+const btnInstall = document.getElementById('btnInstall');
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  btnInstall.style.display = 'inline-flex';
+});
+btnInstall.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  btnInstall.style.display = 'none';
+});
+
+// iOS hint
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInStandalone = window.navigator.standalone === true;
+if (isIOS && !isInStandalone) {
+  document.getElementById('iosHint').style.display = 'block';
+}
+// Tombol dedikasi A2HS (selalu ada di mobile)
+const btnA2HS = document.getElementById('btnA2HS');
+const isStandalone =
+  (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+  window.navigator.standalone === true;
+const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+
+// Tampilkan tombol hanya di perangkat mobile yang belum standalone
+if (btnA2HS) btnA2HS.style.display = isMobile && !isStandalone ? 'inline-flex' : 'none';
+
+// Klik tombol dedikasi
+btnA2HS?.addEventListener('click', async () => {
+  // 1) Android/Chrome: gunakan prompt resmi bila tersedia
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    btnInstall?.style?.setProperty('display', 'none');
+    btnA2HS?.style?.setProperty('display', 'none');
+    return;
+  }
+
+  // 2) iOS (Safari, non-standalone): tampilkan petunjuk
+  if (isIOS && !isStandalone) {
+    const hint = document.getElementById('iosHint');
+    if (hint) hint.style.display = 'block';
+    alert('iOS: Buka di Safari → Share → Add to Home Screen');
+    return;
+  }
+
+  // 3) Fallback umum
+  alert('Buka menu browser → “Add to Home Screen” / “Install App”. Pastikan HTTPS & Service Worker aktif.');
+});
+
+// Sembunyikan tombol setelah ter-install
+window.addEventListener('appinstalled', () => {
+  btnInstall?.style?.setProperty('display', 'none');
+  btnA2HS?.style?.setProperty('display', 'none');
+});
+
+const monthNames = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const weekdayHeader = ["Sen","Sel","Rab","Kam","Jum","Sab","Min"];
+const cfgKey="ttdCfgPWA_simpler"; const doneKey="ttdDonePWA_simpler"; const burstKey="ttdBurstsPWA_simpler";
+function ymd(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+
+// State
+let cfg = JSON.parse(localStorage.getItem(cfgKey) || '{"weekday":5,"time":"08:00"}');
+let done= JSON.parse(localStorage.getItem(doneKey)||'{}');
+let bursts= JSON.parse(localStorage.getItem(burstKey)||'[]'); // [{start:'YYYY-MM-DD', days:5}]
+let view = new Date();
+
+// Elements
+const selMonth=document.getElementById("selMonth");
+const selYear =document.getElementById("selYear");
+const selTTD  =document.getElementById("selTTD");
+const remTime =document.getElementById("remTime");
+const labelMonth=document.getElementById("labelMonth");
+const gridDow = document.getElementById("dow");
+const gridCal = document.getElementById("cal");
+const toastEl=document.getElementById("toast");
+const burstDaysEl=document.getElementById("burstDays");
+const burstCountLabel=document.getElementById("burstCountLabel");
+
+function showToast(html){
+  toastEl.innerHTML = html;
+  toastEl.classList.add("show");
+  clearTimeout(showToast.tid);
+  showToast.tid = setTimeout(()=>toastEl.classList.remove("show"), 2000);
+}
+
+// Fill selectors
+(function initSelectors(){
+  monthNames.forEach((m,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=m; selMonth.appendChild(o); });
+  const thisYear=new Date().getFullYear();
+  for(let y=thisYear-50;y<=thisYear+50;y++){ const o=document.createElement("option"); o.value=y; o.textContent=y; selYear.appendChild(o); }
+  selTTD.value = String(cfg.weekday ?? 5);
+  remTime.value = cfg.time || "08:00";
+})();
+
+// Build weekday header
+(function buildDOW(){
+  gridDow.innerHTML="";
+  weekdayHeader.forEach(n=>{ const d=document.createElement("div"); d.className="dow"; d.textContent=n.toUpperCase(); gridDow.appendChild(d); });
+})();
+
+// Monthly bg
+const bgByMonth=["#ffe6f1","#ffe9ef","#fff0f6","#fff2f7","#ffeef4","#ffe2ef","#ffe9f6","#f6e8ff","#eaf2ff","#eafff4","#fffbe6","#fff0eb"];
+
+// Education content
+const EDU = [
+  ["Kenapa zat besi penting?","Zat besi membantu pembentukan hemoglobin, protein darah yang mengangkut oksigen.","Dengan hemoglobin cukup, tubuh lebih segar dan otak mendapat pasokan oksigen yang baik.","Untuk remaja, asupan zat besi penting karena sedang tumbuh dan aktif.","TTD membantu melengkapi kebutuhan zat besi harian agar terhindar dari anemia."],
+  ["Anemia & prestasi belajar","Anemia membuat konsentrasi turun, pusing, dan mudah mengantuk di kelas.","Belajar jadi kurang optimal karena otak kekurangan oksigen.","Konsumsi rutin TTD membantu meningkatkan fokus dan menjaga kehadiran.","Sarapan bergizi membantu energi belajar tetap stabill."],
+  ["TTD & menstruasi","Saat haid, sebagian darah hilang sehingga cadangan zat besi berkurang.","Rutin TTD membantu mengisi kembali cadangan tersebut agar tidak mudah lelah.","Jika ada keluhan, minum setelah makan dan cukup air.","Bila keluhan berlanjut, sampaikan ke petugas kesehatan."],
+  ["Cara minum yang nyaman","Waktu nyaman: setelah makan, bersama vitamin C.","Hindari teh/kopi 1–2 jam sebelum/sesudah TTD.","Sediakan botol air agar tidak lupa.","Buat momen minum TTD jadi kebiasaan bersama teman."]
+];
+while(EDU.length<24){EDU.push(...EDU.slice(0,24-EDU.length));}
+
+// QUIZ (MCQ relevan)
+const QUIZ = [
+  [
+    {q:"Fungsi utama zat besi dalam darah adalah…", a:["Mengangkut oksigen","Membuat rambut keriting","Menaikkan tinggi badan"], c:0},
+    {q:"TTD diminum untuk…", a:["Mencegah anemia","Mengganti olahraga","Menambah gula darah"], c:0},
+    {q:"Agar belajar fokus, sebaiknya…", a:["Cukupi zat besi & minum TTD","Tidak sarapan","Kurangi minum air"], c:0}
+  ],
+  [
+    {q:"Anemia dapat menyebabkan…", a:["Cepat lelah, sulit konsentrasi","Rambut cepat panjang","Kulit menjadi biru"], c:0},
+    {q:"Salah satu pencegahan anemia…", a:["Minum TTD teratur","Tidak makan pagi","Kurangi minum air"], c:0},
+    {q:"Kebiasaan yang mendukung belajar…", a:["Sarapan bergizi","Begadang tiap malam","Melewatkan makan"], c:0}
+  ],
+  [
+    {q:"Saat haid terjadi…", a:["Kehilangan darah","Berkurangnya tulang","Pertumbuhan gigi"], c:0},
+    {q:"TTD saat haid membantu…", a:["Mengisi cadangan zat besi","Menambah gula darah","Membuat kantuk"], c:0},
+    {q:"Frekuensi minum saat haid yang benar…", a:["1x sehari selama beberapa hari","Hanya sekali di awal haid","Tidak perlu minum"], c:0}
+  ],
+  [
+    {q:"Waktu minum TTD yang dianjurkan…", a:["Setelah makan","Saat olahraga berat","Sebelum sarapan dengan kopi"], c:0},
+    {q:"Minuman yang perlu dihindari dekat waktu TTD…", a:["Teh/kopi","Air putih","Infused water"], c:0},
+    {q:"Yang membantu penyerapan zat besi…", a:["Vitamin C","Gula berlebih","Garam berlebih"], c:0}
+  ]
+];
+while(QUIZ.length<24){QUIZ.push(...QUIZ.slice(0,24-QUIZ.length));}
+
+// Doodles
+const DOODLES = [
+  `<svg viewBox="0 0 64 64" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><path d="M32 56C18 46 6 37 6 24c0-7 6-12 12-12 6 0 10 4 14 9 4-5 8-9 14-9 6 0 12 5 12 12 0 13-12 22-26 32z" fill="#ff8db8" opacity=".9"/></svg>`,
+  `<svg viewBox="0 0 64 64" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="8" fill="#ffd6e5"/><circle cx="32" cy="16" r="10" fill="#ffc1d6"/><circle cx="32" cy="48" r="10" fill="#ffc1d6"/><circle cx="16" cy="32" r="10" fill="#ffc1d6"/><circle cx="48" cy="32" r="10" fill="#ffc1d6"/></svg>`,
+  `<svg viewBox="0 0 64 64" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><path d="M32 6l7 14 16 2-12 10 4 16-15-8-15 8 4-16-12-10 16-2z" fill="#ffe08a"/></svg>`,
+  `<svg viewBox="0 0 64 64" width="42" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M18 40h28a10 10 0 0 0 0-20 14 14 0 0 0-26-4A10 10 0 1 0 18 40z" fill="#e6f2ff"/></svg>`,
+  `<svg viewBox="0 0 64 64" width="34" height="34" xmlns="http://www.w3.org/2000/svg"><path d="M54 10C34 12 12 24 10 44c12 2 32-6 44-24-6 14-18 24-34 28" fill="#d6f5e4"/></svg>`,
+  `<svg viewBox="0 0 64 64" width="38" height="24" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="20" width="52" height="24" rx="12" fill="#ffc9dd"/><path d="M32 20h26v24H32z" fill="#ff9ac3" opacity=".6"/></svg>`,
+  `<svg viewBox="0 0 64 64" width="28" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M20 14a12 12 0 1 1 24 0c0 10-12 18-12 18S20 24 20 14z" fill="#e9d5ff"/><path d="M32 32l-8 16 8-6 8 6-8-16z" fill="#d6b6ff"/></svg>`,
+  `<svg viewBox="0 0 64 64" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><path d="M12 32l6-2 2-6 2 6 6 2-6 2-2 6-2-6zM40 16l4-1 1-4 1 4 4 1-4 1-1 4-1-4z" fill="#ffdfe8"/></svg>`,
+  `<svg viewBox="0 0 64 64" width="36" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M32 30c8-12 18-16 22-6 2 6-4 12-12 12-4 0-8-2-10-6z" fill="#ffe3f0"/><path d="M32 30c-8-12-18-16-22-6-2 6 4 12 12 12 4 0 8-2 10-6z" fill="#ffd0e6"/><rect x="30" y="28" width="4" height="12" rx="2" fill="#a86b8f"/></svg>`
+];
+
+function addAlarm(cell){
+  const alarm = document.createElement("div");
+  alarm.className="alarm";
+  alarm.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2zm6-6v-5a6 6 0 0 0-12 0v5l-2 2v1h18v-1l-2-2zM5 5l-2-2 2-2 2 2-2 2zm14 0l-2-2 2-2 2 2-2 2z" fill="#ff6fa7"/></svg>`;
+  cell.appendChild(alarm);
+}
+
+function addDoodles(cell, count){
+  for(let i=0;i<count;i++){
+    const svg = DOODLES[Math.floor(Math.random()*DOODLES.length)];
+    const wrap = document.createElement("div"); wrap.className="doodle";
+    wrap.style.left = (2 + Math.random()*70) + "%";
+    wrap.style.top  = (8 + Math.random()*70) + "%";
+    wrap.style.transform = `rotate(${(Math.random()*40-20).toFixed(1)}deg) scale(${(0.7+Math.random()*0.4).toFixed(2)})`;
+    wrap.innerHTML = svg;
+    cell.appendChild(wrap);
+  }
+}
+
+function dateInAnyBurst(dt){
+  for(const b of bursts){
+    const s = new Date(b.start+"T00:00:00");
+    const e = new Date(s); e.setDate(e.getDate()+(b.days||5)-1);
+    if(dt>=s && dt<=e) return true;
+  }
+  return false;
+}
+
+function build(date){
+  document.body.style.backgroundColor = bgByMonth[date.getMonth()];
+  selMonth.value = date.getMonth(); selYear.value = date.getFullYear();
+  labelMonth.textContent = monthNames[date.getMonth()] + " " + date.getFullYear();
+  gridCal.innerHTML="";
+  const year = date.getFullYear(), month = date.getMonth();
+  const first = new Date(year, month, 1);
+  const firstDay = (first.getDay()+6)%7;
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  for(let i=0;i<firstDay;i++){ const e=document.createElement("div"); e.className="day"; gridCal.appendChild(e); }
+  for(let d=1; d<=daysInMonth; d++){
+    const cell = document.createElement("div"); cell.className="day";
+    const num = document.createElement("div"); num.className="date"; num.textContent = String(d).padStart(2,"0");
+    cell.appendChild(num);
+    const dt = new Date(year, month, d);
+    const isTTD = dt.getDay() === parseInt(selTTD.value,10);
+    if(isTTD) cell.classList.add("ttd");
+    if(dateInAnyBurst(dt)) cell.classList.add("burst");
+    const k = ymd(dt);
+    if(done[k]) cell.classList.add("done");
+    const today = new Date();
+    const isToday = dt.toDateString()===today.toDateString();
+    if(isToday) cell.classList.add("today");
+    const shouldAlarm = isToday && (isTTD || dateInAnyBurst(dt));
+    if(shouldAlarm){ addAlarm(cell); }
+    cell.addEventListener("click", ()=>{
+      if(done[k]){
+        delete done[k]; 
+        showToast('<span class="rm">✗</span> Status dihapus: belum minum');
+      } else {
+        done[k]=true;
+        showToast('<span class="ok">✓</span> Tersimpan: sudah minum');
+      }
+      localStorage.setItem(doneKey, JSON.stringify(done));
+      build(new Date(year, month, 1));
+    });
+    const base = isTTD ? 4 : 2; const extra = Math.random()<0.5 ? 2 : 1;
+    addDoodles(cell, base+extra);
+    gridCal.appendChild(cell);
+  }
+  burstCountLabel.textContent = bursts.length ? (`Pengingat harian aktif: ${bursts.length}`) : "";
+}
+
+// DOW
+(function updateDOW(){
+  const header=document.getElementById("dow"); header.innerHTML="";
+  weekdayHeader.forEach(n=>{ const d=document.createElement("div"); d.className="dow"; d.textContent=n.toUpperCase(); header.appendChild(d); });
+})();
+
+
+function localDateStr(d){
+  const pad=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+}
+
+// Notification scheduling: 1 hour before + on time
+let notifTimer=null;
+function scheduleReminders(){
+  if(!("Notification" in window) || Notification.permission!=="granted"){ return; }
+  if(notifTimer) clearInterval(notifTimer);
+  notifTimer = setInterval(async ()=>{
+    const now=new Date();
+    const [hh,mm] = (typeof getTimeValue==="function") ? getTimeValue("remTime","08:00") : remTime.value.split(":").map(Number);
+    const [bhh,bmm] = (typeof getTimeValue==="function") ? getTimeValue("remTimeBurst","07:00") : (remTime.value||"08:00").split(":").map(Number);
+    const target = new Date(now); target.setHours(hh, mm, 0, 0);
+    const pre = new Date(target); pre.setHours(target.getHours()-1);
+    const targetB = new Date(now); targetB.setHours(bhh, bmm, 0, 0);
+    const preB = new Date(targetB); preB.setHours(targetB.getHours()-1);
+    const near = (d) => Math.abs(now - d) < 3000;
+    const reg = await navigator.serviceWorker.getRegistration();
+
+    if(now.getDay()===parseInt(selTTD.value,10)){
+      if(near(pre) && reg){ reg.showNotification("1 jam lagi minum TTD 💊",{body:"Siapkan air minum & tablet ya."}); }
+      if(near(target) && reg){ reg.showNotification("Waktunya minum TTD 💊",{body:"Minum sekarang, semangat!"}); }
+    }
+    if (dateInAnyBurst(now)) {
+	  if (near(preB) && reg)    { reg.showNotification("1 jam lagi: TTD harian",{body:"Ingat minum 1x hari ini ya."}); }
+	  if (near(targetB) && reg) { reg.showNotification("TTD harian — sekarang",{body:"Saatnya minum hari ini."}); }
+    }
+  }, 30000);
+}
+
+// Google Calendar: weekly & daily-short
+function openGCalWeekly(){
+  const weekday=parseInt(selTTD.value,10);
+  const now = new Date();
+  const [hh,mm]=remTime.value.split(":").map(Number);
+  const start=new Date(now.getFullYear(),now.getMonth(),now.getDate(),hh,mm,0);
+  const delta=(7+weekday-start.getDay())%7;
+  if(delta===0 && start<now) start.setDate(start.getDate()+7); else start.setDate(start.getDate()+delta);
+  const end=new Date(start); end.setMinutes(end.getMinutes()+10);
+  const startStr = start.toISOString().replace(/[-:]/g,"").slice(0,15)+"Z";
+  const endStr = end.toISOString().replace(/[-:]/g,"").slice(0,15)+"Z";
+  const byday=["SU","MO","TU","WE","TH","FR","SA"][weekday];
+  const url=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Minum TTD (mingguan)")}&dates=${startStr}/${endStr}&recur=${encodeURIComponent("RRULE:FREQ=WEEKLY;BYDAY="+byday)}&details=${encodeURIComponent("Aktifkan notifikasi 1 jam sebelum & saat waktu minum.")}`;
+  window.open(url + "&ctz=" + encodeURIComponent(TZ), "_blank");
+}
+function openGCalBurst(){
+  const days = parseInt(burstDaysEl.value,10)||5;
+  const now = new Date();
+  const s = now.toISOString().slice(0,10);
+  const t = remTime.value || "08:00";
+  const startStr = `${s}T${t}:00Z`.replace(/[-:]/g,"");
+  const endDate = new Date(s); endDate.setDate(endDate.getDate()+days);
+  const endStr = `${endDate.toISOString().slice(0,10)}T${t}:00Z`.replace(/[-:]/g,"");
+  const recur = "RRULE:FREQ=DAILY;COUNT="+days;
+  const url=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("TTD harian (periode khusus)")}&dates=${startStr}/${endStr}&recur=${encodeURIComponent(recur)}&details=${encodeURIComponent("Aktifkan notifikasi 1 jam sebelum & saat waktu minum.")}`;
+  window.open(url + "&ctz=" + encodeURIComponent(TZ), "_blank");
+}
+
+// Theme index for 24-month cycle
+function themeIndex(d){
+  const startYear = 2025;
+  const idx = ((d.getFullYear()-startYear)*12 + d.getMonth()) % 24;
+  return (idx+24)%24;
+}
+
+function setEduQuiz(d){
+  const i = themeIndex(d);
+  const e = EDU[i];
+  document.getElementById("eduTitle").textContent = e[0];
+  document.getElementById("eduP1").textContent = e[1];
+  document.getElementById("eduP2").textContent = e[2];
+  document.getElementById("eduP3").textContent = e[3];
+  document.getElementById("eduP4").textContent = e[4];
+  const qs = QUIZ[i]; const box = document.getElementById("quiz"); box.innerHTML="";
+  qs.forEach((item,idx)=>{
+    const wrap=document.createElement("div"); wrap.className="qset";
+    const name = "q"+idx;
+    const opts = item.a.map((opt,oi)=>`<label class="answer"><input type="radio" name="${name}" value="${oi}"> ${opt}</label>`).join("");
+    wrap.innerHTML = `<div class="q">${idx+1}. ${item.q}</div>${opts}`;
+    box.appendChild(wrap);
+  });
+  document.getElementById("quizScore").textContent = "";
+}
+document.getElementById("checkQuiz").addEventListener("click", ()=>{
+  const i = themeIndex(view);
+  const qs = QUIZ[i];
+  let score=0,total=qs.length;
+  qs.forEach((item,idx)=>{
+    const sel = document.querySelector(`input[name="q${idx}"]:checked`);
+    if(sel && parseInt(sel.value,10)===item.c) score++;
+  });
+  document.getElementById("quizScore").textContent = `Skor kamu: ${score} dari ${total}`;
+});
+
+// Events
+document.getElementById("prevBtn").addEventListener("click", ()=>{ view.setMonth(view.getMonth()-1); build(view); setEduQuiz(view); });
+document.getElementById("nextBtn").addEventListener("click", ()=>{ view.setMonth(view.getMonth()+1); build(view); setEduQuiz(view); });
+document.getElementById("btnToday").addEventListener("click", ()=>{ view = new Date(); build(view); setEduQuiz(view); });
+selMonth.addEventListener("change", ()=>{ view.setMonth(parseInt(selMonth.value,10)); build(view); setEduQuiz(view); });
+selYear.addEventListener("change", ()=>{ view.setFullYear(parseInt(selYear.value,10)); build(view); setEduQuiz(view); });
+selTTD.addEventListener("change", ()=>{ cfg.weekday = parseInt(selTTD.value,10); localStorage.setItem(cfgKey, JSON.stringify(cfg)); build(view); });
+remTime.addEventListener("change", ()=>{ cfg.time = remTime.value; localStorage.setItem(cfgKey, JSON.stringify(cfg)); scheduleReminders(); });
+document.getElementById("btnGCal").addEventListener("click", openGCalWeekly);
+
+document.getElementById("btnAddBurst").addEventListener("click", ()=>{
+  if(bursts && bursts.length>0){
+    // OFF: clear all
+    bursts = [];
+    localStorage.setItem(burstKey, JSON.stringify(bursts));
+    build(view);
+    scheduleReminders();
+    showToast('<span class="rm">✗</span> Pengingat harian dimatikan');
+    const b=document.getElementById("btnAddBurst"); if(b) b.textContent='➕ Tambah pengingat harian (mulai hari ini)';
+    return;
+  }
+  // ON: add a single burst package starting today
+  const days = parseInt(burstDaysEl.value,10)||5;
+  const start = localDateStr(new Date());
+  bursts = [{start:start, days:days}];
+  localStorage.setItem(burstKey, JSON.stringify(bursts));
+  build(view);
+  scheduleReminders();
+  showToast('<span class="ok">✓</span> Pengingat harian diaktifkan ('+days+' hari)');
+  const b=document.getElementById("btnAddBurst"); if(b) b.textContent='Matikan pengingat harian';
+});
+  document.getElementById("btnGCalBurst").addEventListener("click", openGCalBurst);
+document.getElementById("btnClearBursts").addEventListener("click", ()=>{
+  const b=document.getElementById("btnAddBurst"); if(b) b.textContent='➕ Tambah pengingat harian (mulai hari ini)';
+  bursts = [];
+  localStorage.setItem(burstKey, JSON.stringify(bursts));
+  build(view);
+  showToast('<span class="rm">✗</span> Pengingat harian dihapus');
+});
+
+// Init
+(function init(){
+  const b=document.getElementById("btnAddBurst"); if(b){ b.textContent = (bursts && bursts.length>0) ? "Matikan pengingat harian" : "➕ Tambah pengingat harian (mulai hari ini)"; }
+  const now = new Date();
+  selMonth.value = now.getMonth();
+  selYear.value = now.getFullYear();
+  build(view); setEduQuiz(view);
+  scheduleReminders();
+})();
+</script>
+
+<script>
+// Robust time reader: supports "08:00" or "08.00"
+function getTimeValue(id, fallback){
+  var el = document.getElementById(id);
+  var v = (el && el.value) ? String(el.value) : String(fallback||"08:00");
+  v = v.replace('.', ':');
+  var parts = v.split(':');
+  var hh = parseInt(parts[0], 10);
+  var mm = parseInt((parts.length>1?parts[1]:"0"), 10);
+  if (isNaN(hh)) hh = 8;
+  if (isNaN(mm)) mm = 0;
+  return [hh, mm];
+}
+</script>
+
+
+<!-- GCal SUPER-OVERRIDE START -->
+<script>
+(function(){
+  function pad(n){return String(n).padStart(2,'0');}
+  function fmtLocal(dt){
+    return dt.getFullYear()+pad(dt.getMonth()+1)+pad(dt.getDate())
+         +'T'+pad(dt.getHours())+pad(dt.getMinutes())+pad(dt.getSeconds());
+  }
+  var FORCE_TZ = (Intl && Intl.DateTimeFormat && Intl.DateTimeFormat().resolvedOptions) ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'Asia/Jakarta';
+  if(!FORCE_TZ) FORCE_TZ = 'Asia/Jakarta';
+
+  function readTime(id, fallback){
+    var el = document.getElementById(id);
+    var v = (el && el.value ? el.value : (fallback||'08:00')).replace('.',':');
+    var p = v.split(':');
+    var hh = parseInt(p[0],10); if(isNaN(hh)) hh = 8;
+    var mm = parseInt(p[1]||'0',10); if(isNaN(mm)) mm = 0;
+    return [hh,mm];
+  }
+  function buildLocalRange(hh,mm){
+    var now = new Date();
+    var start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0, 0);
+    var end   = new Date(start); end.setMinutes(end.getMinutes()+10);
+    return [fmtLocal(start), fmtLocal(end)];
+  }
+  function sanitize(url){
+    url = String(url||'');
+    url = url.replace(/(dates=\d{8}T\d{6})Z/g, '$1');
+    url = url.replace(/(%2F\d{8}T\d{6})Z/g, '$1');
+    if(!/(?:&|\?)ctz=/.test(url)){
+      url += (url.indexOf('?')>-1?'&':'?') + 'ctz=' + encodeURIComponent(FORCE_TZ);
+    }
+    return url;
+  }
+
+  // --- OVERRIDES ---
+  window.openGCalWeekly = function(){
+    var sel = document.getElementById('selTTD');
+    var weekday = sel ? parseInt(sel.value,10) : 5;
+    var t = readTime('remTime','08:00');
+    var hh=t[0], mm=t[1];
+
+    var now = new Date();
+    var start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0, 0);
+    var diff = (weekday - start.getDay() + 7) % 7;
+    if(diff>0) start.setDate(start.getDate()+diff);
+    var end = new Date(start); end.setMinutes(end.getMinutes()+10);
+
+    var startStr = fmtLocal(start), endStr = fmtLocal(end);
+    var byday=['SU','MO','TU','WE','TH','FR','SA'][weekday];
+    var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+      + '&text=' + encodeURIComponent('Minum TTD (mingguan)')
+      + '&dates=' + startStr + '/' + endStr
+      + '&recur=' + encodeURIComponent('RRULE:FREQ=WEEKLY;BYDAY='+byday)
+      + '&details=' + encodeURIComponent('Aktifkan notifikasi 1 jam sebelum & saat waktu minum.');
+    url = sanitize(url);
+    window.open(url, '_blank');
+    return url;
+  };
+
+  window.openGCalBurst = function(){
+    var daysEl = document.getElementById('burstDays');
+    var days = daysEl ? parseInt(daysEl.value,10)||5 : 5;
+    var src = document.getElementById('remTimeBurst') ? 'remTimeBurst' : 'remTime';
+    var t = readTime(src,'08:00');
+    var hh=t[0], mm=t[1];
+
+    var now = new Date();
+    var start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0, 0);
+    var end = new Date(start); end.setMinutes(end.getMinutes()+10);
+    var startStr = fmtLocal(start), endStr = fmtLocal(end);
+
+    var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+      + '&text=' + encodeURIComponent('TTD harian (periode khusus)')
+      + '&dates=' + startStr + '/' + endStr
+      + '&recur=' + encodeURIComponent('RRULE:FREQ=DAILY;COUNT='+days)
+      + '&details=' + encodeURIComponent('Aktifkan notifikasi 1 jam sebelum & saat waktu minum.');
+    url = sanitize(url);
+    window.open(url, '_blank');
+    return url;
+  };
+
+  // --- Capture clicks and route to our overrides (prevents old handlers) ---
+  function captureAndRoute(btnId, fn){
+    var el = document.getElementById(btnId);
+    if(!el || typeof fn !== 'function') return;
+    el.addEventListener('click', function(e){
+      e.preventDefault(); e.stopImmediatePropagation(); e.stopPropagation();
+      try{ fn(); }catch(_){}
+    }, true); // capture phase
+  }
+  captureAndRoute('btnGCal', openGCalWeekly);
+  captureAndRoute('btnGCalBurst', openGCalBurst);
+})();
+</script>
+<!-- GCal SUPER-OVERRIDE END -->
+
+
+<!-- Mini Window: Kapan Harus Minum TTD -->
+<style>
+#btnKapanTTD{font-size:.85rem;border:1px solid #ffb3d9;background:#ffe6f2;border-radius:6px;padding:6px 10px}
+.ttd-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:9999}
+.ttd-modal[aria-hidden="false"]{display:block;filter: var(--guideImgFilter);transition: filter .15s ease}
+.ttd-sheet{position:absolute;left:0;right:0;bottom:0;background:#fff7fb;border-radius:16px 16px 0 0;max-height:80vh;overflow:auto;border:1px solid #ffd1e6;box-shadow:0 -6px 18px rgba(0,0,0,.12);padding:14px}
+@media (min-width: 860px){ .ttd-sheet{ bottom:auto; top:50%; left:50%; right:auto; transform:translate(-50%,-50%); border-radius:14px; max-height:72vh; width:min(720px, 92vw);} }
+.ttd-sheet h3{margin:0 0 6px 0; font-size:1.05rem; color:#cc3c78}
+.ttd-sheet h4{margin:8px 0 6px 0; font-size:1rem; color:#cc3c78}
+.ttd-sheet .close{position:absolute; right:10px; top:10px; background:#ffe6f2; border:1px solid #ffb3d9; border-radius:8px; padding:6px 10px; font-size:.85rem}
+.ttd-section ul{margin:6px 0 8px 20px; padding:0}
+.ttd-note{font-size:.9rem; opacity:.9; background:#fff; border:1px dashed #ffb3d9; padding:8px; border-radius:8px}
+body.lite .ttd-sheet{background:#fff}
+</style>
+
+<div id="ttdModal" class="ttd-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="ttdModalTitle">
+  <div class="ttd-sheet">
+    <button class="close" id="closeTTD" aria-label="Tutup panel">Tutup</button>
+    <h3 id="ttdModalTitle">Kapan harus minum TTD?</h3>
+    <div class="ttd-section" id="ttdCopyContent">
+      <ul class="ttd-list">
+        <li><strong>Rutin mingguan</strong> — Minum <strong>1 tablet sekali seminggu</strong> pada hari pilihanmu (mis. <em>Jumat</em>). Pertahankan hari yang sama tiap minggu.</li>
+        <li><strong>Saat haid (tambahan harian)</strong> — Minum <strong>1 tablet per hari</strong> selama <strong>4–7 hari</strong> sejak hari pertama haid. Atur <em>Jam haid</em> di aplikasi agar pengingatnya sesuai.</li>
+        <li><strong>Kalau lupa</strong> — Minum segera saat ingat di hari itu. <strong>Jangan dobel</strong> tablet di hari yang sama.</li>
+      </ul>
+      <h4>Tips minum & info penting</h4>
+      <ul class="ttd-bullets">
+        <li><strong>Cara lebih nyaman:</strong> minum <em>setelah makan</em> atau <em>menjelang tidur</em> jika mudah mual.</li>
+        <li><strong>Hindari teh/kopi/susu</strong> berdekatan (beri jarak <strong>1–2 jam</strong>). Air putih & buah kaya <strong>vitamin C</strong> membantu penyerapan.</li>
+        <li><strong>Normal:</strong> feses lebih gelap saat minum TTD.</li>
+        <li><strong>Hubungi nakes</strong> bila mual/pusing hebat, muntah berulang, ruam/alergi, atau bila hamil/menyusui/ada kondisi tertentu.</li>
+      </ul>
+      <p class="ttd-note"><strong>Catatan privasi:</strong> tanda “sudah minum” & pengingat lokal <em>hanya</em> tersimpan di perangkat ini; tidak tersinkron jika ganti HP / mode incognito.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Create an open button inside #topActions (if exists) or right after header
+  function ensureOpenBtn(){
+    var group = document.getElementById('topActions');
+    if(!group){
+      var hdr = document.querySelector('h1,header');
+      if(hdr){
+        group = document.createElement('div'); group.id='topActions'; group.style.display='flex'; group.style.gap='8px'; group.style.flexWrap='wrap'; group.style.margin='6px 0';
+        hdr.parentNode.insertBefore(group, hdr.nextSibling);
+      }
+    }
+    if(group && !document.getElementById('btnKapanTTD')){
+      var btn = document.createElement('button');
+      btn.id = 'btnKapanTTD';
+      btn.textContent = 'Kapan minum TTD?';
+      group.appendChild(btn);
+      btn.addEventListener('click', openModal);
+    }
+  }
+
+  var modal = document.getElementById('ttdModal');
+  var btnClose = document.getElementById('closeTTD');
+  var lastFocus = null;
+
+  function openModal(){
+    if(!modal) return;
+    lastFocus = document.activeElement;
+    modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+    // focus first button for accessibility
+    btnClose && btnClose.focus();
+  }
+  function closeModal(){
+    if(!modal) return;
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+    if(lastFocus && typeof lastFocus.focus==='function'){ try{ lastFocus.focus(); }catch(e){} }
+  }
+
+  btnClose && btnClose.addEventListener('click', closeModal);
+  modal && modal.addEventListener('click', function(e){ if(e.target === modal){ closeModal(); } });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ closeModal(); } });
+  // Wire static button if present (so it sits near "Hari ini")
+  var staticBtn = document.getElementById('btnKapanTTD');
+  if(staticBtn){ staticBtn.addEventListener('click', openModal); }
+
+
+  if(document.readyState !== 'loading'){ ensureOpenBtn(); }
+  else { /*document.addEventListener('DOMContentLoaded', ensureOpenBtn);*/ }
+})();
+</script>
+
+
+<!-- ===================== Panduan GCal (modal + carousel) ===================== -->
+<style>
+  .gc-btn{font-size:.85rem;border:1px solid #ffb3d9;background:#ffe6f2;border-radius:6px;padding:6px 10px}
+  .gc-modal{position:fixed;inset:0;background:rgba(0,0,0,0);display:none;z-index:9999}
+  .gc-modal[aria-hidden="false"]{display:block;filter: var(--guideImgFilter);transition: filter .15s ease}
+  .gc-sheet{position:absolute;left:0;right:0;bottom:0;background:#fff7fb;border-radius:16px 16px 0 0;max-height:80vh;overflow:auto;border:1px solid #ffd1e6;box-shadow:0 -6px 18px rgba(0,0,0,.12);padding:14px}
+  @media (min-width:860px){.gc-sheet{bottom:auto;top:50%;left:50%;right:auto;transform:translate(-50%,-50%);border-radius:14px;max-height:72vh;width:min(820px,92vw)}}
+  .gc-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .gc-title{margin:0;font-size:1.05rem;color:#cc3c78}
+  .gc-close{border:1px solid #ffb3d9;background:#ffe6f2;border-radius:8px;padding:6px 10px;font-size:.85rem}
+  .gc-group{margin:.5rem 0 0;color:#7a5a6b;font-weight:700}
+  .gc-stage{margin-top:8px;background:#fff;border:1px solid #ffd1e6;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:auto;min-height:260px}
+  :root { --guideImgFilter: none; }
+  .gc-stage img{max-width:100%;max-height:56vh;display:block;filter: var(--guideImgFilter);transition: filter .15s ease}
+  .gc-cap{font-size:.95rem;margin:8px 2px 0;color:#3e2a35}
+  .gc-nav{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px}
+  .gc-btn2{border:1px solid #ffb3d9;background:#ffe6f2;border-radius:8px;padding:6px 10px}
+  .gc-dots{display:flex;gap:6px;align-items:center}
+  .gc-dot{width:8px;height:8px;border-radius:50%;background:#ffd1e6;border:1px solid #ffb3d9}
+  .gc-dot.active{background:#ff8dbb}
+</style>
+
+<script>
+(function(){
+  function placeGuideButton(){
+    if(document.getElementById('btnGCalGuide')) return;
+    const candidates = Array.from(document.querySelectorAll('button, a')).filter(el=>/google calendar/i.test(el.textContent||''));
+    let anchor = candidates[0] || document.getElementById('topActions') || document.body;
+    const btn = document.createElement('button');
+    btn.id='btnGCalGuide'; btn.type='button'; btn.className='gc-btn'; btn.textContent='❓ Panduan menambah pengingat';
+    if(anchor.parentElement) anchor.parentElement.insertBefore(btn, anchor.nextSibling);
+    else anchor.appendChild(btn);
+    btn.addEventListener('click', openModal);
+  }
+
+  function ensureModal(){
+    if(document.getElementById('gcModal')) return;
+    const el=document.createElement('div');
+    el.id='gcModal'; el.className='gc-modal'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-hidden','true');
+    el.innerHTML = `
+      <div class="gc-sheet">
+        <div class="gc-head">
+          <h3 class="gc-title">Panduan menambah pengingat</h3>
+          <button class="gc-close" id="gcBright" style="margin-right:8px">🌞 Cerahkan</button>
+          <button class="gc-close" id="gcClose">Tutup</button>
+        </div>
+        <div class="gc-group" id="gcGroup"></div>
+        <div class="gc-stage"><img id="gcImg" alt="Langkah panduan" loading="eager"></div>
+        <p class="gc-cap" id="gcCap"></p>
+        <div class="gc-nav">
+          <button class="gc-btn2" id="gcPrev">← Sebelumnya</button>
+          <div class="gc-dots" id="gcDots"></div>
+          <button class="gc-btn2" id="gcNext">Berikutnya →</button>
+        </div>
+      </div>`;
+    document.body.appendChild(el);
+    document.getElementById('gcClose').onclick = closeModal;
+    el.addEventListener('click', e => { if(e.target === el) closeModal(); });
+    document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+  }
+
+  
+  
+  
+  const slides = [
+    {src:'images/1.jpg', group:'Menambahkan pengingat mingguan', cap:'1/3 — Dari aplikasi, tekan “Tambah ke Google Calendar — TTD mingguan”. Pastikan hari & jam sudah kamu atur.'},
+    {src:'images/2.jpg', group:'Menambahkan pengingat mingguan', cap:'2/3 — Di Google Calendar, periksa tanggal & jam sudah sesuai'},
+    {src:'images/3.jpg', group:'Menambahkan pengingat mingguan', cap:'3/3 — Simpan. Pengingat akan muncul setiap minggu pada hari yang sama.'},
+    {src:'images/4.jpg', group:'Pengingat harian saat haid/menstruasi', cap:'1/2 — Di aplikasi, isi “Jam haid” dan durasi 4–7 hari. Tekan “Google Calendar — harian beberapa hari”.'},
+    {src:'images/5.jpg', group:'Pengingat harian saat haid/menstruasi', cap:'2/2 — Di Google Calendar, cek rentang tanggal & jam sama, lalu Simpan. Jadwal harian dibuat sesuai durasi.'},
+    {src:'images/6.jpg', group:'Mengunduh Google Calendar', cap:'Unduh aplikasi Google Calendar dari App Store/Play Store, lalu masuk & izinkan notifikasi.'},
+    {src:'images/7.jpg', group:'Mengaktifkan notifikasi', cap:'Pastikan izin notifikasi Google Calendar aktif di iOS/Android agar pengingat muncul.'}
+  ];
+
+
+
+  let idx=0, lastFocus=null;
+  function render(){
+    const s=slides[idx];
+    const img=document.getElementById('gcImg'), cap=document.getElementById('gcCap'), grp=document.getElementById('gcGroup');
+    img.src=s.src; img.alt=s.group; cap.textContent=s.cap; grp.textContent=s.group;
+    const dots=document.getElementById('gcDots'); dots.innerHTML='';
+    slides.forEach((_,i)=>{ const d=document.createElement('span'); d.className='gc-dot'+(i===idx?' active':''); d.onclick=()=>{ idx=i; render(); }; dots.appendChild(d); });
+  }
+  function openModal(){ ensureModal(); lastFocus=document.activeElement; const m=document.getElementById('gcModal'); m.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden';
+    if(document.getElementById('gcPrev').onclick==null){ document.getElementById('gcPrev').onclick=()=>{ idx=(idx-1+slides.length)%slides.length; render(); };
+      document.getElementById('gcNext').onclick=()=>{ idx=(idx+1)%slides.length; render(); }; }
+    idx=0; render(); }
+  function closeModal(){ const m=document.getElementById('gcModal'); if(m) m.setAttribute('aria-hidden','true'); document.body.style.overflow=''; if(lastFocus && lastFocus.focus) try{ lastFocus.focus(); }catch(e){} }
+
+  if(document.readyState!=='loading'){ placeGuideButton(); ensureModal(); }
+  else document.addEventListener('DOMContentLoaded', ()=>{ placeGuideButton(); ensureModal(); });
+})();
+</script>
+<!-- =================== /Panduan GCal =================== -->
+
+
+<script>
+(function(){
+  function hookStaticGuide(){
+    var s = document.getElementById('btnGCalGuideStatic');
+    if(!s) return;
+    s.addEventListener('click', function(e){
+      e.preventDefault();
+      var btnDyn = document.getElementById('btnGCalGuide');
+      if(btnDyn){ btnDyn.click(); }
+      else if(typeof openModal==='function'){ openModal(); }
+    });
+  }
+  if(document.readyState!=='loading') hookStaticGuide();
+  else document.addEventListener('DOMContentLoaded', hookStaticGuide);
+})();
+</script>
+
+
+<script>
+(function(){
+  function hookStaticGuide(){
+    var s = document.getElementById('btnGCalGuideStatic');
+    if(!s) return;
+    s.addEventListener('click', function(e){
+      e.preventDefault();
+      var btnDyn = document.getElementById('btnGCalGuide');
+      if(btnDyn){ btnDyn.click(); }
+      else if(typeof openModal==='function'){ openModal(); }
+    });
+  }
+  if(document.readyState!=='loading') hookStaticGuide();
+  else document.addEventListener('DOMContentLoaded', hookStaticGuide);
+})();
+</script>
+
+
+<script>
+(function(){
+  function hookBright(){
+    var b = document.getElementById('gcBright');
+    if(!b) return;
+    var on = true;
+    b.addEventListener('click', function(){
+      on = !on;
+      document.documentElement.style.setProperty('--guideImgFilter',
+        on ? 'brightness(1.20) contrast(1.08) saturate(1.05)' : 'none'
+      );
+      b.textContent = on ? '🌞 Cerahkan' : '🌙 Mode asli';
+    });
+  }
+  if(document.readyState!=='loading') hookBright();
+  else document.addEventListener('DOMContentLoaded', hookBright);
+})();
+</script>
+
+
+<script type="module">
+// Integrasi Web Push per-user (weekly + burst) — gunakan /js/subscribe.js dari starter kit
+const tryImport = async () => {
+  try { return await import('/js/subscribe.js'); }
+  catch { return await import('./js/subscribe.js'); }
+};
+const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Jakarta';
+
+function getWeeklySchedule(){
+  const selTTD = document.getElementById('selTTD');
+  const remTime = document.getElementById('remTime');
+  const day = selTTD ? parseInt(selTTD.value,10) : 5;
+  const [hh,mm] = (remTime?.value||'08:00').replace('.',':').split(':').map(Number);
+  return { type:'weekly', days:[day], hour:hh||8, minute:mm||0, label:'TTD mingguan' };
+}
+function getBurstSchedule(){
+  try{
+    const bursts = JSON.parse(localStorage.getItem('ttdBurstsPWA_simpler')||'[]');
+    if (!bursts || !bursts.length) return null;
+    const b = bursts[0];
+    const rt = (document.getElementById('remTimeBurst')?.value || '07:00').replace('.',':').split(':');
+    const hh = parseInt(rt[0]||'7',10), mm = parseInt(rt[1]||'0',10);
+    return { type:'burst', from: b.start, days: b.days||5, hour: hh||7, minute: mm||0, label:'TTD saat haid' };
+  }catch(e){ return null; }
+}
+
+async function enableBackgroundPush(){
+  const mod = await tryImport();
+  const schedules = [ getWeeklySchedule() ];
+  const burst = getBurstSchedule();
+  if (burst) schedules.push(burst);
+
+  const PUBLIC_VAPID = (window.PUBLIC_VAPID_KEY || '').trim(); // boleh kosong
+  try{
+    const res = await mod.initWebPush({
+      publicKey: PUBLIC_VAPID || undefined,
+      schedules,
+      tz,
+      saveUrl: '/.netlify/functions/save-subscription'
+    });
+    alert('Pengingat background aktif ✔️\n' + JSON.stringify(res));
+  }catch(err){
+    alert('Gagal mengaktifkan push: ' + (err?.message || err));
+  }
+}
+
+// === Added by assistant: split Web Push into weekly & burst ===
+async function enableWeeklyPush(){
+  const mod = await (typeof tryImport === 'function' ? tryImport() : Promise.reject(new Error('tryImport() tidak ditemukan')));
+  const PUBLIC_VAPID = (window.PUBLIC_VAPID_KEY || '').trim?.() || window.PUBLIC_VAPID_KEY || '';
+  if (typeof getWeeklySchedule !== 'function') {
+    alert('Fungsi getWeeklySchedule() tidak ditemukan. Pastikan fungsi ini ada.');
+    return;
+  }
+  const schedules = [ getWeeklySchedule() ];
+  try{
+    const res = await mod.initWebPush?.({
+      publicKey: PUBLIC_VAPID || undefined,
+      schedules,
+      tz: (typeof tz !== 'undefined' ? tz : Intl.DateTimeFormat().resolvedOptions().timeZone),
+      saveUrl: '/.netlify/functions/save-subscription'
+    });
+    alert('Pengingat background MINGGUAN aktif ✔️');
+    console.debug('[push][weekly] init result:', res);
+  }catch(err){
+    console.error(err);
+    alert('Gagal mengaktifkan push mingguan: ' + (err?.message || err));
+  }
+}
+
+async function enableBurstPush(){
+  const mod = await (typeof tryImport === 'function' ? tryImport() : Promise.reject(new Error('tryImport() tidak ditemukan')));
+  const PUBLIC_VAPID = (window.PUBLIC_VAPID_KEY || '').trim?.() || window.PUBLIC_VAPID_KEY || '';
+  if (typeof getBurstSchedule !== 'function') {
+    alert('Fungsi getBurstSchedule() tidak ditemukan. Atur dulu jadwal harian (periode).');
+    return;
+  }
+  const burst = getBurstSchedule();
+  if (!burst) {
+    alert('Atur dulu “Pengingat harian (periode)” di atas (durasi & mulai), lalu coba lagi.');
+    return;
+  }
+  try{
+    const res = await mod.initWebPush?.({
+      publicKey: PUBLIC_VAPID || undefined,
+      schedules: [ burst ],
+      tz: (typeof tz !== 'undefined' ? tz : Intl.DateTimeFormat().resolvedOptions().timeZone),
+      saveUrl: '/.netlify/functions/save-subscription'
+    });
+    alert('Pengingat background HARIAN (periode) aktif ✔️');
+    console.debug('[push][burst] init result:', res);
+  }catch(err){
+    console.error(err);
+    alert('Gagal mengaktifkan push harian: ' + (err?.message || err));
+  }
+}
+
+// Pasang listener ke tombol baru
+document.getElementById('btnEnablePushWeekly')?.addEventListener('click', enableWeeklyPush);
+document.getElementById('btnEnablePushBurst')?.addEventListener('click', enableBurstPush);
+// === End added ===
+
+</script>
+
+</body>
+</html>

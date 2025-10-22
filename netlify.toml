@@ -1,0 +1,6 @@
+[functions]
+  node_bundler = "esbuild"
+
+[[scheduled.functions]]
+  name = "send-reminders"
+  cron = "*/15 * * * *"
