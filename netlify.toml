@@ -3,6 +3,7 @@
   node_bundler = "esbuild"
   external_node_modules = ["web-push"]
 
+# Jalankan pengirim push tiap 5 menit (ubah ke */1 saat uji)
 [[scheduled]]
   path = "/.netlify/functions/send-reminders"
-  schedule = "*/5 * * * *"  # untuk uji coba
+  schedule = "*/5 * * * *"
