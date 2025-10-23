@@ -5,16 +5,12 @@ import { createHash } from 'node:crypto';
 const CORS = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'POST,OPTIONS',
-  'access-control-allow-headers': 'content-type',
+  'access-control-allow-headers': 'content-type'
 };
 
 export default async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('', { status: 200, headers: CORS });
-  }
-  if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405, headers: CORS });
-  }
+  if (req.method === 'OPTIONS') return new Response('', { status: 200, headers: CORS });
+  if (req.method !== 'POST')   return new Response('Method Not Allowed', { status: 405, headers: CORS });
 
   let payload;
   try { payload = await req.json(); }
@@ -34,7 +30,7 @@ export default async (req) => {
     schedules: Array.isArray(schedules) ? schedules : [],
     tz,
     ua: ua || '',
-    ts: Date.now(),
+    ts: Date.now()
   };
 
   await store.setJSON(id, record);
