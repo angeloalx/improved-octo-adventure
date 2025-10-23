@@ -1,6 +1,14 @@
+# === Netlify config tanpa expose secrets ke build (aman) ===
+
+[build]
+  publish   = "."
+  functions = "netlify/functions"
+  # TIDAK ADA [build.environment] di sini — jangan expose ENV ke frontend
+
 [functions]
   node_bundler = "esbuild"
 
+# Scheduled function: kirim pengingat berkala di server
 [[scheduled.functions]]
   name = "send-reminders"
   cron = "*/15 * * * *"
