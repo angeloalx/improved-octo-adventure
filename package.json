@@ -1,16 +1,7 @@
 {
-  "name": "kalender-ttd-netlify",
-  "version": "1.0.0",
-  "description": "Kalender TTD Jenangan web push PWA for Netlify",
-  "main": "index.html",
   "type": "module",
-  "scripts": {
-    "start": "netlify dev",
-    "build": "echo 'Static build complete'"
-  },
   "dependencies": {
-    "@netlify/blobs": "^6.3.0",
+    "@netlify/blobs": "^8.0.0",
     "web-push": "^3.6.0"
-  },
-  "license": "MIT"
+  }
 }
