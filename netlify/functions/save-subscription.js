@@ -1,50 +1,32 @@
-// netlify/functions/save-subscription.js
-// CommonJS (Functions v1 style) + Blobs context for Lambda mode
+// netlify/functions/save-subscription.js (Functions v2, ESM)
+import { getStore } from '@netlify/blobs';
+import { createHash } from 'node:crypto';
 
-const { getStore, connectLambda } = require('@netlify/blobs');
-const crypto = require('crypto');
+const CORS = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'POST,OPTIONS',
+  'access-control-allow-headers': 'content-type',
+};
 
-function ok(body = 'saved') {
-  return {
-    statusCode: 200,
-    headers: {
-      'access-control-allow-origin': '*',
-      'access-control-allow-methods': 'POST,OPTIONS',
-      'access-control-allow-headers': 'content-type',
-      'content-type': 'text/plain; charset=utf-8',
-    },
-    body,
-  };
-}
-function err(status, msg) {
-  return {
-    statusCode: status,
-    headers: {
-      'access-control-allow-origin': '*',
-      'access-control-allow-methods': 'POST,OPTIONS',
-      'access-control-allow-headers': 'content-type',
-      'content-type': 'text/plain; charset=utf-8',
-    },
-    body: msg,
-  };
-}
+export default async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('', { status: 200, headers: CORS });
+  }
+  if (req.method !== 'POST') {
+    return new Response('Method Not Allowed', { status: 405, headers: CORS });
+  }
 
-exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return ok('');
-  if (event.httpMethod !== 'POST') return err(405, 'Method Not Allowed');
-
-  // ⬇️ Wajib untuk Functions v1 (Lambda-compat)
-  connectLambda(event);
-
-  let payload = {};
-  try { payload = JSON.parse(event.body || '{}'); }
-  catch { return err(400, 'Invalid JSON'); }
+  let payload;
+  try { payload = await req.json(); }
+  catch { return new Response('Invalid JSON', { status: 400, headers: CORS }); }
 
   const { endpoint, keys, schedules = [], tz = 'Asia/Jakarta', ua } = payload || {};
-  if (!endpoint || !keys?.p256dh || !keys?.auth) return err(400, 'Missing endpoint/keys');
+  if (!endpoint || !keys?.p256dh || !keys?.auth) {
+    return new Response('Missing endpoint/keys', { status: 400, headers: CORS });
+  }
 
-  const id = crypto.createHash('sha256').update(endpoint).digest('hex');
-  const store = getStore('subscriptions'); // ← API yang benar (bukan blobStore)
+  const id = createHash('sha256').update(endpoint).digest('hex');
+  const store = getStore('subscriptions');
 
   const record = {
     endpoint,
@@ -55,6 +37,6 @@ exports.handler = async (event) => {
     ts: Date.now(),
   };
 
-  await store.setJSON(id, record); // ← cara simpan JSON resmi
-  return ok('saved');
+  await store.setJSON(id, record);
+  return new Response('saved', { status: 200, headers: { ...CORS, 'content-type': 'text/plain; charset=utf-8' } });
 };
