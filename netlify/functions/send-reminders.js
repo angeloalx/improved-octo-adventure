@@ -7,41 +7,63 @@ const VAPID_PRIVATE = process.env.PRIVATE_VAPID_KEY || '';
 
 webpush.setVapidDetails('mailto:you@example.com', VAPID_PUBLIC, VAPID_PRIVATE);
 
-// cek apakah sekarang waktu yang “jatuh tempo” utk sebuah jadwal
+// toleransi menit utk cron (mis. cron tiap 5 menit)
+const WINDOW_MINUTES = Number(process.env.SEND_WINDOW_MINUTES || 5);
+
+function nowInTZ(tz) {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: tz || 'Asia/Jakarta' }));
+}
+function minutesDiff(a, b) { return Math.abs((a - b) / 60000); }
+
 function isDue(now, sched, tz='Asia/Jakarta') {
-  const local = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
-  const H = n => String(n).padStart(2,'0');
-  const sameHM = (h,m) => local.getHours() === (h||8) && local.getMinutes() === (m||0);
+  const local = nowInTZ(tz);
 
   if (sched.type === 'weekly') {
-    return (sched.days || []).includes(local.getDay()) && sameHM(sched.hour, sched.minute);
+    const days = Array.isArray(sched.days) ? sched.days.map(Number) : [];
+    if (!days.includes(local.getDay())) return false;
+    const h = Number(sched.hour ?? 8);
+    const m = Number(sched.minute ?? 0);
+    const target = new Date(local); target.setHours(h, m, 0, 0);
+    return minutesDiff(local, target) <= WINDOW_MINUTES;
   }
+
   if (sched.type === 'burst') {
-    // contoh: {type:'burst', from:'2025-10-01', days:14, hour, minute}
+    if (!sched.from) return false;
     const start = new Date(`${sched.from}T00:00:00`);
-    const end = new Date(start); end.setDate(end.getDate() + (sched.days||1) - 1);
-    return local >= start && local <= end && sameHM(sched.hour, sched.minute);
+    const len = Number(sched.days ?? 1);
+    const end = new Date(start); end.setDate(end.getDate() + len - 1);
+    if (local < start || local > end) return false;
+    const h = Number(sched.hour ?? 7);
+    const m = Number(sched.minute ?? 0);
+    const target = new Date(local); target.setHours(h, m, 0, 0);
+    return minutesDiff(local, target) <= WINDOW_MINUTES;
   }
+
   return false;
 }
 
 exports.handler = async () => {
-  // baca semua subscription di bucket "subscriptions"
+  if (!VAPID_PUBLIC || !VAPID_PRIVATE) {
+    return { statusCode: 500, body: 'Missing VAPID keys' };
+  }
+
   const store = blobStore('subscriptions', { consistency: 'strong' });
-  const listing = await store.list();
-  let sent = 0;
+  const list = await store.list();
+  const now = new Date();
+  let sent = 0, checked = 0, deleted = 0, errors = 0;
 
-  for (const item of listing.blobs || []) {
-    const raw = await store.get(item.key);
-    if (!raw) continue;
-
+  for (const item of list.blobs || []) {
+    const buf = await store.get(item.key);
+    if (!buf) continue;
     let rec;
-    try { rec = JSON.parse(raw.toString('utf-8')); } catch { continue; }
-    const { endpoint, keys, schedules = [], tz, lang } = rec || {};
+    try { rec = JSON.parse(buf.toString('utf-8')); } catch { continue; }
+
+    const { endpoint, keys, schedules = [], tz } = rec || {};
     if (!endpoint || !keys || !schedules.length) continue;
 
     for (const sched of schedules) {
-      if (!isDue(new Date(), sched, tz)) continue;
+      checked++;
+      if (!isDue(now, sched, tz)) continue;
 
       const subscription = { endpoint, keys };
       try {
@@ -51,15 +73,24 @@ exports.handler = async () => {
             title: sched.label || 'Pengingat TTD',
             body: 'Waktunya minum tablet 💊',
             tag: 'ttd-reminder',
-            data: { url: '/' } // buka ke halaman utama saat diklik
+            data: { url: '/' }
           })
         );
         sent++;
       } catch (e) {
-        console.error('push error', e?.statusCode, e?.body);
+        errors++;
+        // 410 Gone: hapus subscription mati
+        if (e?.statusCode === 410 || /gone/i.test(e?.body || '')) {
+          await store.delete(item.key).catch(()=>{});
+          deleted++;
+        }
+        // lanjut ke yang lain
       }
     }
   }
 
-  return { statusCode: 200, body: `ok sent=${sent}` };
+  return {
+    statusCode: 200,
+    body: `ok sent=${sent} checked=${checked} deleted=${deleted} errors=${errors}`
+  };
 };
