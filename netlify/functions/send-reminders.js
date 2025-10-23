@@ -72,7 +72,7 @@ export default async () => {
         sent++;
       } catch (e) {
         errors++;
-        if (e?.statusCode === 410) { // subscription mati
+        if (e?.statusCode === 410) {
           await store.delete(key).catch(() => {});
           deleted++;
         }
