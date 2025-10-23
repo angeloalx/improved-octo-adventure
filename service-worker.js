@@ -1,50 +1,48 @@
-// service-worker.js — clean & minimal
-self.addEventListener('install', (e) => {
-  // update segera begitu SW baru ada
+// service-worker.js — clean
+// Versi cache dinaikkan agar update selalu keambil
+const SW_VERSION = 'ttd-v3';
+
+self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (e) => {
-  // ambil kontrol semua client yang terbuka
-  e.waitUntil(self.clients.claim());
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
 });
 
-// TIDAK melakukan caching agresif untuk menghindari index.html basi.
-// (Kalau perlu offline, kita bisa tambahkan nanti secara selektif.)
-
+// Terima push & tampilkan notifikasi
 self.addEventListener('push', (event) => {
   let data = {};
   try {
-    data = event.data ? event.data.json() : {};
+    data = event.data ? (event.data.json ? event.data.json() : JSON.parse(event.data.text())) : {};
   } catch {
-    const txt = event.data ? event.data.text() : '';
-    data = { title: 'Pengingat', body: txt, data: {} };
+    data = { title: 'Pengingat', body: event.data && event.data.text ? event.data.text() : '' };
   }
 
   const title = data.title || 'Pengingat';
-  const body = data.body || '';
-  const tag = data.tag || 'ttd';
-  const notifData = data.data || { url: '/' };
+  const options = {
+    body: data.body || '',
+    tag: data.tag || 'ttd-reminder',
+    data: data.data || { url: '/' },
+  };
 
-  event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      tag,
-      data: notifData,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/badge.png',
-      requireInteraction: false,
-    })
-  );
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
+// Klik notifikasi → buka/fokus tab
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const url = (event.notification.data && event.notification.data.url) || '/';
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-      const existing = list.find((c) => new URL(c.url).pathname === url);
-      return existing ? existing.focus() : clients.openWindow(url);
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientsArr) => {
+      const hadWindow = clientsArr.some((c) => {
+        if (new URL(c.url).pathname === url) {
+          c.focus();
+          return true;
+        }
+        return false;
+      });
+      if (!hadWindow) return self.clients.openWindow(url);
     })
   );
 });
