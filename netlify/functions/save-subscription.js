@@ -1,80 +1,97 @@
-// netlify/functions/save-subscription.js
-// Menyimpan subscription & jadwal pengguna ke Netlify Blobs.
-// Aman: tidak butuh package tambahan & tidak mengekspos secrets.
+// netlify/functions/send-reminders.js
+// Kirim Web Push ke semua subscription yang "jatuh tempo"
+// CJS style (compat Netlify Functions)
 
+const webpush = require('web-push');
 const { blobStore } = require('@netlify/blobs');
-const crypto = require('crypto');
 
-const CORS = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'POST,OPTIONS',
-  'access-control-allow-headers': 'content-type'
-};
+const VAPID_PUBLIC = process.env.PUBLIC_VAPID_KEY || '';
+const VAPID_PRIVATE = process.env.PRIVATE_VAPID_KEY || '';
+
+webpush.setVapidDetails('mailto:you@example.com', VAPID_PUBLIC, VAPID_PRIVATE);
+
+// toleransi menit supaya gak miss kalau cron tiap 5 menit
+const WINDOW_MINUTES = 3;
+
+function nowInTZ(tz) {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: tz || 'Asia/Jakarta' }));
+}
+function minutesDiff(a, b) { return Math.abs((a - b) / 60000); }
+
+function isDue(now, sched, tz = 'Asia/Jakarta') {
+  const local = nowInTZ(tz);
+
+  if (sched.type === 'weekly') {
+    // sched: {type:'weekly', days:[0-6], hour, minute}
+    if (!Array.isArray(sched.days) || !sched.days.includes(local.getDay())) return false;
+    const target = new Date(local);
+    target.setHours(sched.hour ?? 8, sched.minute ?? 0, 0, 0);
+    return minutesDiff(local, target) <= WINDOW_MINUTES;
+  }
+
+  if (sched.type === 'burst') {
+    // sched: {type:'burst', from:'YYYY-MM-DD', days:7, hour, minute}
+    if (!sched.from) return false;
+    const start = new Date(`${sched.from}T00:00:00`);
+    const end = new Date(start);
+    end.setDate(end.getDate() + (sched.days ?? 1) - 1);
+    if (local < start || local > end) return false;
+
+    const target = new Date(local);
+    target.setHours(sched.hour ?? 7, sched.minute ?? 0, 0, 0);
+    return minutesDiff(local, target) <= WINDOW_MINUTES;
+  }
+
+  return false;
+}
 
 exports.handler = async (event) => {
   try {
-    // CORS preflight
-    if (event.httpMethod === 'OPTIONS') {
-      return { statusCode: 204, headers: CORS, body: '' };
+    if (!VAPID_PUBLIC || !VAPID_PRIVATE) {
+      return { statusCode: 500, body: 'Missing VAPID keys in ENV' };
     }
 
-    if (event.httpMethod !== 'POST') {
-      return { statusCode: 405, headers: CORS, body: 'Method Not Allowed' };
-    }
-
-    let body = {};
-    try {
-      body = JSON.parse(event.body || '{}');
-    } catch {
-      return { statusCode: 400, headers: CORS, body: 'Invalid JSON' };
-    }
-
-    const { endpoint, keys, schedules, tz, ua, lang } = body;
-
-    // Validasi minimum
-    if (!endpoint || typeof endpoint !== 'string') {
-      return { statusCode: 400, headers: CORS, body: 'Missing endpoint' };
-    }
-    if (!keys || typeof keys !== 'object') {
-      return { statusCode: 400, headers: CORS, body: 'Missing keys' };
-    }
-    if (!Array.isArray(schedules) || schedules.length === 0) {
-      return { statusCode: 400, headers: CORS, body: 'Missing schedules' };
-    }
-
-    // Batasi payload agar tidak berlebihan
-    if (JSON.stringify(schedules).length > 20_000) {
-      return { statusCode: 413, headers: CORS, body: 'Schedules too large' };
-    }
-
-    // Gunakan hash endpoint sebagai id (idempotent: 1 user = 1 record)
-    const id = crypto.createHash('sha256').update(endpoint).digest('hex').slice(0, 48);
-
-    // Simpan ke Netlify Blobs (bucket "subscriptions")
     const store = blobStore('subscriptions', { consistency: 'strong' });
+    const listing = await store.list();
+    const now = new Date();
+    let sent = 0, total = 0;
 
-    const record = {
-      id,
-      endpoint,
-      keys,
-      schedules,
-      tz: tz || 'Asia/Jakarta',
-      ua: ua || '',
-      lang: lang || 'id-ID',
-      updatedAt: new Date().toISOString()
-    };
+    for (const item of listing.blobs || []) {
+      const raw = await store.get(item.key);
+      if (!raw) continue;
 
-    await store.set(id, JSON.stringify(record), {
-      contentType: 'application/json; charset=utf-8',
-    });
+      let rec;
+      try { rec = JSON.parse(raw.toString('utf-8')); } catch { continue; }
 
-    return {
-      statusCode: 200,
-      headers: { ...CORS, 'content-type': 'application/json' },
-      body: JSON.stringify({ ok: true, id })
-    };
-  } catch (err) {
-    console.error('save-subscription error:', err);
-    return { statusCode: 500, headers: CORS, body: 'Internal Server Error' };
+      const { endpoint, keys, schedules = [], tz, lang } = rec || {};
+      if (!endpoint || !keys || !schedules.length) continue;
+
+      for (const sched of schedules) {
+        total++;
+        if (!isDue(now, sched, tz)) continue;
+
+        const subscription = { endpoint, keys };
+        try {
+          await webpush.sendNotification(
+            subscription,
+            JSON.stringify({
+              title: sched.label || 'Pengingat TTD',
+              body: 'Waktunya minum tablet 💊',
+              tag: 'ttd-reminder',
+              data: { url: '/' } // jika notifikasi diklik
+            })
+          );
+          sent++;
+        } catch (e) {
+          // log error, lanjutkan subscription lain
+          console.error('push error', e?.statusCode, e?.body || e?.message);
+        }
+      }
+    }
+
+    return { statusCode: 200, body: `ok sent=${sent} checked=${total}` };
+  } catch (e) {
+    console.error(e);
+    return { statusCode: 500, body: `error ${e?.message || e}` };
   }
 };
