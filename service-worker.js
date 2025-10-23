@@ -1,64 +1,50 @@
-/* service-worker.js — PWA + Web Push */
-const CACHE = 'ttd-v1';
-const ASSETS = [
-  '/', '/index.html',
-  '/manifest.webmanifest',
-  '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png',
-];
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>null)));
+// service-worker.js — clean & minimal
+self.addEventListener('install', (e) => {
+  // update segera begitu SW baru ada
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k => caches.delete(k)))));
-  self.clients.claim();
+self.addEventListener('activate', (e) => {
+  // ambil kontrol semua client yang terbuka
+  e.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  const url = new URL(req.url);
-  if (req.method !== 'GET' || url.origin !== location.origin) return;
-  event.respondWith(
-    caches.match(req).then(cached => {
-      if (cached) return cached;
-      return fetch(req).then(res => {
-        if (res && res.status === 200 && res.type === 'basic') {
-          const clone = res.clone();
-          caches.open(CACHE).then(cache => cache.put(req, clone));
-        }
-        return res;
-      }).catch(() => cached || Response.error());
-    })
-  );
-});
+// TIDAK melakukan caching agresif untuk menghindari index.html basi.
+// (Kalau perlu offline, kita bisa tambahkan nanti secara selektif.)
 
 self.addEventListener('push', (event) => {
   let data = {};
-  try { data = event.data ? event.data.json() : {}; } catch (_) {}
-  const title = data.title || 'Pengingat TTD';
-  const body  = data.body  || 'Saatnya minum tablet tambah darah.';
-  const icon  = data.icon  || '/icon-192.png';
-  const badge = data.badge || '/icon-192.png';
-  const tag   = data.tag   || 'ttd-reminder';
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    const txt = event.data ? event.data.text() : '';
+    data = { title: 'Pengingat', body: txt, data: {} };
+  }
+
+  const title = data.title || 'Pengingat';
+  const body = data.body || '';
+  const tag = data.tag || 'ttd';
+  const notifData = data.data || { url: '/' };
 
   event.waitUntil(
     self.registration.showNotification(title, {
-      body, icon, badge, tag,
-      data: data.data || {}
+      body,
+      tag,
+      data: notifData,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/badge.png',
+      requireInteraction: false,
     })
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const urlToOpen = (event.notification?.data?.url) || '/';
-  event.waitUntil((async () => {
-    const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const client of allClients) {
-      if ('focus' in client) { client.focus(); return; }
-    }
-    if (clients.openWindow) await clients.openWindow(urlToOpen);
-  })());
+  const url = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      const existing = list.find((c) => new URL(c.url).pathname === url);
+      return existing ? existing.focus() : clients.openWindow(url);
+    })
+  );
 });
