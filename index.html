@@ -973,14 +973,6 @@ const tryImport = async () => {
   catch { return await import('/public/js/subscribe.js'); } }
 };
 const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Jakarta';
-async function fetchVapid() {
-  try {
-    const r = await fetch('/.netlify/functions/public-key');
-    return (await r.text()).trim();
-  } catch {
-    return '';
-  }
-}
 
 function getWeeklySchedule(){
   const selTTD = document.getElementById('selTTD');
@@ -1006,7 +998,7 @@ async function enableBackgroundPush(){
   const burst = getBurstSchedule();
   if (burst) schedules.push(burst);
 
-  const PUBLIC_VAPID = (window.PUBLIC_VAPID_KEY || '').trim(); // boleh kosong
+  const PUBLIC_VAPID = await mod.fetchPublicKey?.();
   try{
     const res = await mod.initWebPush({
       publicKey: PUBLIC_VAPID || undefined,
@@ -1023,7 +1015,7 @@ async function enableBackgroundPush(){
 // === Added by assistant: split Web Push into weekly & burst ===
 async function enableWeeklyPush(){
   const mod = await (typeof tryImport === 'function' ? tryImport() : Promise.reject(new Error('tryImport() tidak ditemukan')));
-  const PUBLIC_VAPID = await fetchVapid();
+  const PUBLIC_VAPID = await mod.fetchPublicKey?.(); // tidak perlu argumen
   if (typeof getWeeklySchedule !== 'function') {
     alert('Fungsi getWeeklySchedule() tidak ditemukan. Pastikan fungsi ini ada.');
     return;
@@ -1046,7 +1038,7 @@ async function enableWeeklyPush(){
 
 async function enableBurstPush(){
   const mod = await (typeof tryImport === 'function' ? tryImport() : Promise.reject(new Error('tryImport() tidak ditemukan')));
-  const PUBLIC_VAPID = await fetchVapid();
+  const PUBLIC_VAPID = await mod.fetchPublicKey?.(); // tidak perlu argumen
   if (typeof getBurstSchedule !== 'function') {
     alert('Fungsi getBurstSchedule() tidak ditemukan. Atur dulu jadwal harian (periode).');
     return;
